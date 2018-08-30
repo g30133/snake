@@ -1,0 +1,111 @@
+
+import { CellType } from './Board'
+import * as C from './constants'
+//import Util from './Util'
+
+
+type DirectionType = 'n' | 's' | 'e' | 'w'
+
+type UnitType = 'H' | 'B'
+
+interface Unit {
+    type: UnitType
+    rowIx:number
+    colIx:number
+}
+
+class Snake {
+    units:Unit[] = []
+    direction:DirectionType
+
+    constructor(rowIx:number, colIx:number) {
+        const head:Unit = { type: 'H', rowIx: rowIx, colIx: colIx }
+        this.units.push(head)
+        this.setDirection('n')
+    }
+
+    setDirection(direction:DirectionType) {
+        this.direction = direction
+    }
+
+    getNextMove(board:string[]) {
+        let rowIx = -1
+        let colIx = -1
+        switch(this.direction) {
+            case 'n':
+            rowIx = this.units[0].rowIx-1
+            colIx = this.units[0].colIx
+            break
+
+            case 'e':
+            rowIx = this.units[0].rowIx
+            colIx = this.units[0].colIx+1
+            break
+
+            case 's':
+            rowIx = this.units[0].rowIx+1
+            colIx = this.units[0].colIx
+            break
+
+            case 'w':
+            rowIx = this.units[0].rowIx
+            colIx = this.units[0].colIx-1
+            break
+        }
+        return board[rowIx * C.NUM_BOARD_COLS + colIx]
+    }
+
+    move() {
+        // for body
+        for(let bodyIndex = this.units.length-1; bodyIndex > 0; bodyIndex--) {
+            this.units[bodyIndex].colIx = this.units[bodyIndex-1].colIx
+            this.units[bodyIndex].rowIx = this.units[bodyIndex-1].rowIx
+        }
+
+        // for head
+        switch(this.direction) {
+            case 'n':
+                this.units[0].rowIx--
+            break
+
+            case 'e':
+            this.units[0].colIx++
+            break
+
+            case 's':
+            this.units[0].rowIx++
+            break
+
+            case 'w':
+            this.units[0].colIx--
+            break
+        }
+    }
+
+    relocateTo(rowIx:number, colIx:number) {
+        this.units = []
+        const head:Unit = { type: 'H', rowIx: rowIx, colIx: colIx }
+        this.units.push(head)
+        this.setDirection('n')
+    }
+
+    emit(board:CellType[]) {
+        //Util.dumpBoard(board)
+        for(const unit of this.units) {
+            const index = unit.rowIx * C.NUM_BOARD_COLS + unit.colIx
+            board[index] = unit.type
+        }
+    }
+
+    grow() {
+        console.log('GROW()')
+        this.units.push({
+            type:'B',
+            rowIx: this.units[this.units.length-1].rowIx,
+            colIx: this.units[this.units.length-1].colIx
+        })
+        console.log('UNITS AFTER PUSH:' + JSON.stringify(this.units))
+    }
+}
+
+export default Snake
