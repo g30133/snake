@@ -17,8 +17,8 @@
 
 .buttons {
   display: grid;
-  grid-template-columns: repeat(3, calc(3 * var(--cell-size)));
-  grid-template-rows: repeat(2, calc(3 * var(--cell-size)));
+  grid-template-columns: repeat(3, calc(4 * var(--cell-size)));
+  grid-template-rows: repeat(2, calc(2.5 * var(--cell-size)));
   grid-gap: 2px;
 }
 

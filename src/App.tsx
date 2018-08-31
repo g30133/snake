@@ -20,6 +20,7 @@ interface PlayerInfo {
 class App extends React.Component<any, AppState> {
   map:string
   snake:Snake
+  aiSnake:Snake
   itemStore:ItemStore
   numLives:number
   currScore:number
@@ -40,7 +41,7 @@ class App extends React.Component<any, AppState> {
 
   private init() {
 
-    this.map = C.map1
+    this.map = C.map2 
     this.numLives = 3
 
     for(let i = 0; i < C.NUM_BOARD_ROWS * C.NUM_BOARD_COLS; i++) {
@@ -48,8 +49,9 @@ class App extends React.Component<any, AppState> {
     }
 
     this.snake = new Snake(10, 10)
+    this.aiSnake = new Snake(20, 20)
 
-    this.itemStore = new ItemStore(this.state.board, 3)
+    this.itemStore = new ItemStore(this.state.board, 1000)
 
     this.currScore = 0
 
@@ -84,8 +86,7 @@ class App extends React.Component<any, AppState> {
     }
   }
 
-  private checkCollisions() {
-    const snake = this.snake
+  private checkSnakeCollisionsAgainstEnvironment(snake:Snake, isAi:boolean) {
     const map = this.map
     const items = this.itemStore.items
 
@@ -93,7 +94,9 @@ class App extends React.Component<any, AppState> {
     // check collistion between head of snake and its body units
     for(const bodyPart of snake.units.slice(1, snake.units.length)) {
       if(bodyPart.rowIx * C.NUM_BOARD_COLS + bodyPart.colIx === snakeIxInBoard) {
-        this.numLives--
+        if (isAi === false) {
+          this.numLives--
+        }
         snake.relocateTo(10, 10)
       }
     }
@@ -101,19 +104,47 @@ class App extends React.Component<any, AppState> {
     // check collision between head of snake and walls
     if (map[snakeIxInBoard] === '#') {
       console.log('hit a wall!')
-      this.numLives--
+      if (isAi === false) {
+        this.numLives--
+      }
       snake.relocateTo(10, 10)
     }
     
     // check collision between head of snake and items
     for(const item of items)  {
       if(item.rowIx * C.NUM_BOARD_COLS + item.colIx === snakeIxInBoard) {
-        this.currScore++
-        this.saveHighScores()
+        if (isAi === false) {
+          this.currScore++
+          this.saveHighScores()
+        }
         snake.grow()
         this.itemStore.relocateFrom(this.state.board, item.rowIx, item.colIx)
       }
     }
+  }
+
+  private checkSnakeCollisionsWithOtherSnake(snake:Snake, aiSnake:Snake) {
+    const snakeIxInBoard = snake.units[0].rowIx * C.NUM_BOARD_COLS + snake.units[0].colIx
+    const aiSnakeIxInBoard = aiSnake.units[0].rowIx * C.NUM_BOARD_COLS + aiSnake.units[0].colIx
+    for(const snakeUnit of snake.units) {
+      if(snakeUnit.rowIx * C.NUM_BOARD_COLS + snakeUnit.colIx === aiSnakeIxInBoard) {
+        //snake head collided with aisnake body
+        console.log('Snake collided with aiSnake!!!')
+      }
+    }
+
+    for(const aiSnakeUnit of aiSnake.units) {
+      if(aiSnakeUnit.rowIx * C.NUM_BOARD_COLS + aiSnakeUnit.colIx === snakeIxInBoard) {
+        console.log('aiSnake collided with snake!!!')
+        //ai snake head collided with snake body
+      }
+    }
+  }
+
+  private checkCollisions() {
+    this.checkSnakeCollisionsAgainstEnvironment(this.snake, false)
+    this.checkSnakeCollisionsAgainstEnvironment(this.aiSnake, true)
+    this.checkSnakeCollisionsWithOtherSnake(this.snake, this.aiSnake)
   }
 
   private gameLoop() {
@@ -168,7 +199,13 @@ class App extends React.Component<any, AppState> {
     //   console.log('you crashed!')
     //}
 
-    this.snake.move()
+    this.snake.move(false, this.state.board)
+    
+    if(this.aiSnake.checkSurrounded(this.state.board)) {
+      this.aiSnake.relocateTo(20, 20)
+    } else {
+      this.aiSnake.move(true, this.state.board)
+    }
 
     this.checkCollisions()
 
@@ -183,6 +220,9 @@ class App extends React.Component<any, AppState> {
 
       this.itemStore.emit(newBoard)
       this.snake.emit(newBoard)
+      this.aiSnake.emit(newBoard)
+
+      console.log('Ai head pos:' + JSON.stringify(this.aiSnake.units[0]))
 
       return ({
         board: newBoard

@@ -10,7 +10,7 @@ describe('util', () => {
             board.push('')
         }
     
-        Util.loadMap(board, C.map1)
+        Util.loadMap(board, C.map2)
         expect(board[0]).toBe('#')
         expect(board[1]).toBe('#')
         expect(board[2]).toBe('#')

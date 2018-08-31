@@ -2,8 +2,8 @@
     display: grid;
     justify-content: center;
     overflow: hidden;
-    grid-template-rows: repeat(20, var(--cell-size));
-    grid-template-columns: repeat(20, var(--cell-size));
+    grid-template-rows: repeat(40, var(--cell-size));
+    grid-template-columns: repeat(40, var(--cell-size));
     grid-gap: 1px;
     background-color: beige;
 }
